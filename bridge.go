@@ -52,7 +52,12 @@ func Run(f func() error) error {
 	if !atomic.CompareAndSwapInt32(&initialized, 0, 1) {
 		panic("qml.Run called more than once")
 	}
-	C.newGuiApplication()
+	argc := len(os.Args)
+	argv := make([]*C.char, argc)
+	for i := range argv {
+		argv[i] = C.CString(os.Args[i])
+	}
+	C.newGuiApplication(C.int(argc), (**C.char)(&argv[0]))
 	C.idleTimerInit((*C.int32_t)(&guiIdleRun))
 	done := make(chan error, 1)
 	go func() {
